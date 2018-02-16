@@ -5,16 +5,28 @@
 
       <div class="label-width">{{ (millimetres(logoSize, logoMetric) ) / 10 }} CM</div>
       <div class="label-height">{{ (millimetres(logoSize, logoMetric) ) / 10 }} CM</div>
+      <div class="label-surface">{{ Math.round(surface) / 100 }} CM<sup>2</sup></div>
 
       <div class="logo"></div>
 
     </div>
 
     <div class="settings">
-      <input type="number" v-model.number="logoSize">
-      <select v-model.number="logoMetric">
-        <option v-for="(metric, index) in metrics" :value="index" :key="metric.value">{{ metric.short }}</option>
-      </select>
+      <p>
+        <label>Logo width</label>
+        <input type="number" v-model.number="logoSize">
+        <select v-model.number="logoMetric">
+          <option v-for="(metric, index) in metrics" :value="index" :key="metric.value">{{ metric.short }}</option>
+        </select>
+      </p>
+
+      <p>
+        <label>Block width</label>
+        <input type="number" v-model.number="blockWidth">
+        <select v-model.number="blockMetric">
+          <option v-for="(metric, index) in metrics" :value="index" :key="metric.value">{{ metric.short }}</option>
+        </select>
+      </p>
     </div>
 
     <div class="output">
@@ -29,6 +41,8 @@
 const data ={
   logoSize: 1,
   logoMetric: 1,
+  blockWidth: 1,
+  blockMetric: 1,
   metrics: [
     { long: 'millimetres', short: 'mm', value: 1 },
     { long: 'centimetres', short: 'cm', value: (1 * 10) },
