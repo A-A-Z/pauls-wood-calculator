@@ -13,20 +13,28 @@
 
     <div class="settings">
       <p>
-        <label>Logo width</label>
-        <input type="number" v-model.number="logoSize">
-        <select v-model.number="logoMetric">
-          <option v-for="(metric, index) in metrics" :value="index" :key="metric.value">{{ metric.short }}</option>
-        </select>
+        <SizeField
+          label="Logo Size"
+          :fieldSize="logoSize"
+          :fieldMetric="logoMetric"
+          :metrics="metrics"
+          :onFieldSizeChange="onLogoSizeChange"
+          :onFieldMetricChange="onLogoMetricChange"
+        />
       </p>
 
       <p>
-        <label>Block width</label>
-        <input type="number" v-model.number="blockWidth">
-        <select v-model.number="blockMetric">
-          <option v-for="(metric, index) in metrics" :value="index" :key="metric.value">{{ metric.short }}</option>
-        </select>
+        <SizeField
+          label="Block Size"
+          :fieldSize="blockWidth"
+          :fieldMetric="blockMetric"
+          :metrics="metrics"
+          :onFieldSizeChange="onBlockSizeChange"
+          :onFieldMetricChange="onBlockMetricChange"
+        />
       </p>
+
+
     </div>
 
     <div class="output">
@@ -37,6 +45,7 @@
 </template>
 
 <script>
+import SizeField from './components/SizeField'
 
 const data ={
   logoSize: 1,
@@ -58,6 +67,8 @@ export default {
     return data
   },
 
+  components: { SizeField },
+
   beforeMount () {
     // console.log(this.millimetres(this.logoSize, 1))
   },
@@ -72,6 +83,26 @@ export default {
       const circleSurface = radius * radius * Math.PI
       const squireSurface = width * width
       return (circleSurface * 0.75) + (squireSurface * 0.25)
+    },
+
+    onLogoSizeChange (e) {
+      const newVal = parseInt(e.target.value)
+      this.logoSize = (newVal) ?  newVal : 1
+    },
+
+    onLogoMetricChange (e) {
+      const newVal = parseInt(e.target.value)
+      this.logoMetric = (newVal) ?  newVal : 0
+    },
+
+    onBlockSizeChange (e) {
+      const newVal = parseInt(e.target.value)
+      this.blockSize = (newVal) ?  newVal : 1
+    },
+
+    onBlockChange (e) {
+      const newVal = parseInt(e.target.value)
+      this.blockMetric = (newVal) ?  newVal : 0
     }
   },
 
