@@ -1,10 +1,12 @@
 <template>
-  <div id="app">
+  <div id="app" class="wood-calculator">
 
     <div class="logo-preview">
 
-      <div class="label-width">{{ (millimetres(logoSize, logoMetric) ) / 10 }} CM</div>
-      <div class="label-height">{{ (millimetres(logoSize, logoMetric) ) / 10 }} CM</div>
+      <div class="label-width">
+        {{ (millimetres(sizes.logoWidth.size, sizes.logoWidth.metric) ) / 10 }} x
+        {{ (millimetres(sizes.logoWidth.size, sizes.logoWidth.metric) ) / 10 }} CM
+      </div>
       <div class="label-surface">{{ Math.round(surface) / 100 }} CM<sup>2</sup></div>
 
       <div class="logo"></div>
@@ -12,33 +14,71 @@
     </div>
 
     <div class="settings">
-      <p>
-        <SizeField
-          label="Logo Size"
-          :fieldSize="logoSize"
-          :fieldMetric="logoMetric"
-          :metrics="metrics"
-          :onFieldSizeChange="onLogoSizeChange"
-          :onFieldMetricChange="onLogoMetricChange"
-        />
-      </p>
+      <SizeField
+        id="logoWidth"
+        label="Logo Size"
+        :fieldSize="sizes.logoWidth.size"
+        :fieldMetric="sizes.logoWidth.metric"
+        :metrics="metrics"
+        :onFieldSizeChange="updateSize"
+        :onFieldMetricChange="updateMetric"
+      />
 
-      <p>
-        <SizeField
-          label="Block Size"
-          :fieldSize="blockWidth"
-          :fieldMetric="blockMetric"
-          :metrics="metrics"
-          :onFieldSizeChange="onBlockSizeChange"
-          :onFieldMetricChange="onBlockMetricChange"
-        />
-      </p>
+      <SizeField
+        id="blockWidth"
+        label="Block Width"
+        :fieldSize="sizes.blockWidth.size"
+        :fieldMetric="sizes.blockWidth.metric"
+        :metrics="metrics"
+        :onFieldSizeChange="updateSize"
+        :onFieldMetricChange="updateMetric"
+      />
 
+      <SizeField
+        id="blockMin"
+        label="Block Min Length"
+        :fieldSize="sizes.blockMin.size"
+        :fieldMetric="sizes.blockMin.metric"
+        :metrics="metrics"
+        :onFieldSizeChange="updateSize"
+        :onFieldMetricChange="updateMetric"
+      />
+
+      <SizeField
+        id="blockMax"
+        label="Block Max Length"
+        :fieldSize="sizes.blockMax.size"
+        :fieldMetric="sizes.blockMax.metric"
+        :metrics="metrics"
+        :onFieldSizeChange="updateSize"
+        :onFieldMetricChange="updateMetric"
+      />
+
+      <div class="field field-cost">
+        <div><label>Wood cost (per meter)</label></div>
+        <div>
+          <input
+            type="number"
+            min="0.01"
+            v-model="costPerMeter"
+          >
+        </div>
+      </div>
 
     </div>
 
     <div class="output">
-      output: ({{ surface }})
+      <p>
+        Number of blocks: {{ blockCount }}
+      </p>
+
+      <p>
+        Total length of blocks: {{ blockLength / 1000 }} Meters
+      </p>
+
+      <p>
+        Total cost: ${{ totalCost }}
+      </p>
     </div>
 
   </div>
@@ -48,16 +88,18 @@
 import SizeField from './components/SizeField'
 
 const data ={
-  logoSize: 1,
-  logoMetric: 1,
-  blockWidth: 1,
-  blockMetric: 1,
+  sizes: {
+    logoWidth: { size: 1, metric: 1 },
+    blockWidth: { size: 1, metric: 1 },
+    blockMin: { size: 1, metric: 1 },
+    blockMax: { size: 1, metric: 1 }
+  },
   metrics: [
     { long: 'millimetres', short: 'mm', value: 1 },
     { long: 'centimetres', short: 'cm', value: (1 * 10) },
     { long: 'metres', short: 'm', value: (1 * 10 * 100) }
   ],
-  pi: 3.14159265359
+  costPerMeter: 5
 }
 
 export default {
@@ -68,10 +110,6 @@ export default {
   },
 
   components: { SizeField },
-
-  beforeMount () {
-    // console.log(this.millimetres(this.logoSize, 1))
-  },
 
   methods: {
     millimetres(size, metric) {
@@ -85,30 +123,36 @@ export default {
       return (circleSurface * 0.75) + (squireSurface * 0.25)
     },
 
-    onLogoSizeChange (e) {
-      const newVal = parseInt(e.target.value)
-      this.logoSize = (newVal) ?  newVal : 1
+    updateSize (fieldId, value) {
+      this.sizes[fieldId].size = value
     },
 
-    onLogoMetricChange (e) {
-      const newVal = parseInt(e.target.value)
-      this.logoMetric = (newVal) ?  newVal : 0
-    },
-
-    onBlockSizeChange (e) {
-      const newVal = parseInt(e.target.value)
-      this.blockSize = (newVal) ?  newVal : 1
-    },
-
-    onBlockChange (e) {
-      const newVal = parseInt(e.target.value)
-      this.blockMetric = (newVal) ?  newVal : 0
+    updateMetric (fieldId, value) {
+      this.sizes[fieldId].metric = value
     }
   },
 
   computed: {
     surface () {
-      return this.getSurface(this.millimetres(this.logoSize, this.logoMetric))
+      return this.getSurface(this.millimetres(this.sizes.logoWidth.size, this.sizes.logoWidth.metric))
+    },
+
+    blockCount () {
+      const blockWidthMm = this.millimetres(this.sizes.blockWidth.size, this.sizes.blockWidth.metric)
+      const blockArea = blockWidthMm * blockWidthMm
+      return Math.ceil(this.surface / blockArea)
+    },
+
+    blockLength () {
+      const lengthMinMm = this.millimetres(this.sizes.blockMin.size, this.sizes.blockMin.metric)
+      const lengthMaxMm = this.millimetres(this.sizes.blockMax.size, this.sizes.blockMax.metric)
+      const avgLength = (lengthMinMm + lengthMaxMm) / 2
+      return avgLength * this.blockCount
+    },
+
+    totalCost () {
+      const meters = Math.ceil(this.blockLength / 1000 )
+      return meters * this.costPerMeter
     }
   }
 }
@@ -123,21 +167,32 @@ $colour-logo-bg: #444;
 // sizes
 $logo-size: 200px;
 
-body {
 
+.wood-calculator {
+  display: flex;
+
+  &> div {
+    border: 1px solid #CCC;
+    padding: 15px;
+    width: 33%;
+  }
 }
 
 .logo-preview {
   background-color: $colour-logo-bg;
   color: $colour-logo;
-  padding: 50px;
 
   .logo {
     background-color: $colour-logo;
     border-radius: 50% 50% 0 50%;
     height: $logo-size;
+    margin: 20px;
     width: $logo-size;
   }
+}
+
+.field {
+  margin-bottom: 15px;
 }
 
 #app {
